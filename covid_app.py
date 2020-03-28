@@ -148,15 +148,14 @@ tmp = tmp.merge(gdf[['country', 'geometry']], left_on = 'country', right_on = 'c
 # outer join to add missing rows - will join on common columns
 merged = merged.merge(tmp, how='outer')
 
-# del rows with day='NaT'
+# del rows with day='NaT' and NaNs
 merged = merged.loc[merged['day'] != 'NaT']
-
+merged.dropna(subset=['day'], inplace=True) #XXX CHECK THIS IS THE RIGHT THING TO DO!!
 
 
 
 ## Subset to 2 dates for testing
 #merged_subset = merged.loc[merged['day'].isin(['2020-03-01', '2020-03-02'])]
-merged_subset = merged
 
 ## PLOT
 
@@ -193,7 +192,7 @@ def menu_callback(attr, old, new):
     color_bar.color_mapper = color_mapper
 
         
-data = merged_subset
+data = merged
 
 logging.info(data.head())
 logging.info(data['day'].min())
