@@ -164,6 +164,11 @@ def slider_callback(attr, old, new):
     day = date_slider.value
     print(day)
     logging.info(day)
+
+    # hack to convert bokeh epoch unix time to proper date: 
+    # bokeh misses the decimal point so we must divide by 1000 - Antonio logged an issue
+    day = datetime.datetime.fromtimestamp(day/1000)
+
     new_data = source_by_date(data, day)
     source.geojson = new_data.to_json() # overwrite the existing source's geojson
 
