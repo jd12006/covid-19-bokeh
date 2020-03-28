@@ -162,6 +162,8 @@ merged.dropna(subset=['day'], inplace=True) #XXX CHECK THIS IS THE RIGHT THING T
 def slider_callback(attr, old, new):
     """Update numbers based on selected date"""
     day = date_slider.value
+    print(day)
+    logging.info(day)
     new_data = source_by_date(data, day)
     source.geojson = new_data.to_json() # overwrite the existing source's geojson
 
