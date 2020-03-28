@@ -61,6 +61,12 @@ def source_by_date(data, selected_day):
 
 ## import data
 
+## import data
+# PATH = '/Users/jdorni/Documents/training/COVID-19'
+# confirmed = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+# deaths = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+# recovered = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
+
 confirmed = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
 deaths = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
 recovered = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
