@@ -1,4 +1,5 @@
-# run app in terminal using command bokeh serve --show covid_app.py
+# covid_app.py
+# run app in terminal using command bokeh serve --show covid_app.py
 
 import glob
 import pandas as pd
@@ -15,8 +16,6 @@ from bokeh.models import DateSlider, Select, HoverTool
 from bokeh.layouts import widgetbox, row, column
 from bokeh.models.widgets import Panel, Tabs
 
-
-PATH = '/Users/jdorni/Documents/training/COVID-19'
 
 def prepare_data(df, metric):
     
@@ -62,12 +61,12 @@ def source_by_date(data, selected_day):
 
 ## import data
 
-confirmed = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
-deaths = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
-recovered = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
+confirmed = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+deaths = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+recovered = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
 
 # read in shapefile using Geopandas
-shapefile = f'{PATH}/country_boundaries/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp'
+shapefile = 'country_boundaries/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp'
 gdf = gpd.read_file(shapefile)[['ADMIN', 'ADM0_A3', 'geometry']]
 
 
