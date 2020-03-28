@@ -162,8 +162,6 @@ merged.dropna(subset=['day'], inplace=True) #XXX CHECK THIS IS THE RIGHT THING T
 def slider_callback(attr, old, new):
     """Update numbers based on selected date"""
     day = date_slider.value
-    print(day)
-    logging.info(day)
 
     # hack to convert bokeh epoch unix time to proper date: 
     # bokeh misses the decimal point so we must divide by 1000 - Antonio logged an issue
