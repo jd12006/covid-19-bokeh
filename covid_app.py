@@ -1,4 +1,3 @@
-# covid_app.py
 # run app in terminal using command bokeh serve --show covid_app.py
 
 import glob
