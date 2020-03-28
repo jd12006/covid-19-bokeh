@@ -1,5 +1,6 @@
 # run app in terminal using command bokeh serve --show covid_app.py
 
+import logging
 import glob
 import pandas as pd
 import os
@@ -15,6 +16,7 @@ from bokeh.models import DateSlider, Select, HoverTool
 from bokeh.layouts import widgetbox, row, column
 from bokeh.models.widgets import Panel, Tabs
 
+logging.basicConfig(level=logging.INFO)
 
 def prepare_data(df, metric):
     
@@ -193,9 +195,15 @@ def menu_callback(attr, old, new):
         
 data = merged_subset
 
+logging.info(data.head())
+logging.info(data['day'].min())
+logging.info(type(data['day'].min()))
+logging.info(data['day'].max())
+logging.info(type(data['day'].max()))
+
 start_date = datetime.datetime.date(datetime.datetime.strptime(data['day'].min(), "%Y-%m-%d")) 
 end_date = datetime.datetime.date(datetime.datetime.strptime(data['day'].max(), "%Y-%m-%d"))
-print(start_date, end_date)
+#print(start_date, end_date)
 
 selected_day = end_date
 source = source_by_date(data, selected_day)
