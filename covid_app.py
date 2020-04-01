@@ -1,5 +1,9 @@
 # run app in terminal using command bokeh serve --show covid_app.py
 
+# Data are from John Hopkins University Center for Systems Science and Engineering 
+# Source: https://github.com/CSSEGISandData/COVID-19
+
+
 import logging
 import glob
 import pandas as pd
