@@ -240,7 +240,7 @@ p1.ygrid.grid_line_color = None
 
 country_polygons = p1.patches('xs','ys', 
           source=source,
-          fill_alpha=1, line_width=0.5, line_color='black',  
+          fill_alpha=0.2, line_width=0.5, line_color='black',  
           fill_color={'field': metric, 'transform': color_mapper})
 
 hover = HoverTool(tooltips=[('Country', '@country'), ('Deaths', '@deaths{0,0}')])
