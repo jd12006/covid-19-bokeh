@@ -185,20 +185,17 @@ def menu_callback(attr, old, new):
     
     if menu.value == 'Confirmed': 
         metric = 'confirmed'  
-        #color_mapper.palette = brewer['Blues'][9][::-1]
         color_mapper.palette = colorcet.b_linear_blue_5_95_c73[::-1]
         tooltips=[('UN Country', '@country'), ('Confirmed', '@confirmed{0,0}')]
     
     elif menu.value == 'Recovered': 
         metric = 'recovered'
-        #color_mapper.palette = brewer['Greens'][9][::-1]
         color_mapper.palette = colorcet.b_linear_green_5_95_c69[::-1]
         tooltips=[('UN Country', '@country'), ('Recovered', '@recovered{0,0}')]
         
     elif menu.value == 'Deaths':
         metric = 'deaths'
-        #color_mapper.palette = brewer['Reds'][9][::-1]
-        color_mapper.palette = colorcet.b_linear_kry_5_95_c72[::-1]
+        color_mapper.palette = colorcet.b_linear_kry_5_98_c75[::-1]
         tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')]
     else:
         print('Unknown value')
@@ -233,7 +230,6 @@ source = GeoJSONDataSource(geojson=json.dumps(json.loads(source.to_json()))) # G
 
 # set the defaults
 metric = 'confirmed'
-#palette = brewer['Blues'][9][::-1]
 palette = colorcet.b_linear_blue_5_95_c73[::-1]
 
 # set the initial colour map and tooltips
@@ -245,18 +241,10 @@ color_mapper = LinearColorMapper(palette=palette, low=vals.min(), high=vals.max(
 color_bar = ColorBar(color_mapper=color_mapper, label_standoff=6, 
                          location=(0,0), orientation='horizontal', formatter=NumeralTickFormatter())
 
-# TOOLTIPS = [
-#     ('UN country', '@country'),
-#     ('Confirmed', '@confirmed'),
-#     ('Recovered', '@recovered'),
-#     ('Deaths', '@deaths')
-# ]
-
 p1 = figure(title='Global Records By United Nations Country', 
            plot_height=600 , plot_width=850, 
            toolbar_location='right', 
-           tools='wheel_zoom, pan, reset',
-           #tooltips=tooltips,
+           tools='pan,wheel_zoom,box_zoom,reset',
            x_axis_label='Longitude', y_axis_label='Latitude')
 
 p1.xgrid.grid_line_color = None
