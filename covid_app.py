@@ -15,10 +15,11 @@ import itertools
 from bokeh.io import output_notebook, show, output_file, curdoc
 from bokeh.plotting import figure, ColumnDataSource
 from bokeh.models import GeoJSONDataSource, LinearColorMapper, ColorBar
-from bokeh.palettes import brewer 
-from bokeh.models import DateSlider, Select, HoverTool
+from bokeh.models import DateSlider, Select, HoverTool, DatetimeTickFormatter, NumeralTickFormatter
 from bokeh.layouts import widgetbox, row, column
+from bokeh.models.annotations import Title
 from bokeh.models.widgets import Panel, Tabs
+import colorcet 
 
 logging.basicConfig(level=logging.INFO)
 
@@ -65,12 +66,6 @@ def source_by_date(data, selected_day):
 
 
 ## import data
-
-## import data
-# PATH = '/Users/jdorni/Documents/training/COVID-19'
-# confirmed = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
-# deaths = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
-# recovered = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
 
 confirmed = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
 deaths = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
@@ -156,10 +151,9 @@ merged = merged.merge(tmp, how='outer')
 merged = merged.loc[merged['day'] != 'NaT']
 merged.dropna(subset=['day'], inplace=True) #XXX CHECK THIS IS THE RIGHT THING TO DO!!
 
+# sort by date to plot time series
+merged.sort_values(by=['country', 'country_original', 'day'], inplace=True)
 
-
-## Subset to 2 dates for testing
-#merged_subset = merged.loc[merged['day'].isin(['2020-03-01', '2020-03-02'])]
 
 ## PLOT
 
@@ -176,82 +170,80 @@ def slider_callback(attr, old, new):
 
 def menu_callback(attr, old, new):
     """Update color shading by selected metric"""
+    
     if menu.value == 'Confirmed': 
         metric = 'confirmed'  
-        color_mapper.palette = brewer['Purples'][9][::-1]
-        hover = HoverTool(tooltips=[('UN Country', '@country'), ('Confirmed', '@confirmed')])
-        p1.add_tools(hover)
-        
-    
-    elif menu.value == 'Recovered': 
-        metric = 'recovered'
-        color_mapper.palette = brewer['Greens'][9][::-1]
-        hover = HoverTool(tooltips=[('UN Country', '@country'), ('Recovered', '@recovered')])
-        p1.add_tools(hover)
+        color_mapper.palette = colorcet.b_linear_blue_5_95_c73[::-1]
+        tooltips=[('UN Country', '@country'), ('Confirmed', '@confirmed{0,0}')]
         
     elif menu.value == 'Deaths':
         metric = 'deaths'
-        color_mapper.palette = brewer['Reds'][9][::-1]
-        hover = HoverTool(tooltips=[('UN Country', '@country'), ('Deaths', '@deaths')])
-        p1.add_tools(hover)
+        color_mapper.palette = colorcet.b_linear_kry_5_98_c75[::-1]
+        tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')]
         
+    elif menu.value == 'Recovered': 
+        metric = 'recovered'
+        color_mapper.palette = colorcet.b_linear_green_5_95_c69[::-1]
+        tooltips=[('UN Country', '@country'), ('Recovered', '@recovered{0,0}')]
+        
+    else:
+        print('Unknown value')
+        
+    # update tooltips
+    p1.hover.tooltips = tooltips
+    
+    # update colours
     vals = data[metric]    
     color_mapper.low = vals.min()
     color_mapper.high = vals.max()
+    country_polygons.glyph.fill_color = {'field': metric, 'transform': color_mapper}
     color_bar.color_mapper = color_mapper
 
-        
+    
+    
 data = merged
 
-logging.info(data.head())
-logging.info(data['day'].min())
-logging.info(type(data['day'].min()))
-logging.info(data['day'].max())
-logging.info(type(data['day'].max()))
+# logging.info(data.head())
+# logging.info(data['day'].min())
+# logging.info(type(data['day'].min()))
+# logging.info(data['day'].max())
+# logging.info(type(data['day'].max()))
 
 start_date = datetime.datetime.date(datetime.datetime.strptime(data['day'].min(), "%Y-%m-%d")) 
 end_date = datetime.datetime.date(datetime.datetime.strptime(data['day'].max(), "%Y-%m-%d"))
-#print(start_date, end_date)
 
 selected_day = end_date
 source = source_by_date(data, selected_day)
 source = GeoJSONDataSource(geojson=json.dumps(json.loads(source.to_json()))) # GeoJSONDataSource only works with string dates. Have to use geojsondatasource for mapping.
 
 # set the defaults
-metric = 'confirmed'
-palette = brewer['Blues'][9][::-1]
+metric = 'deaths'
+palette = colorcet.b_linear_kry_5_98_c75[::-1]
 
 # set the initial colour map and tooltips
 vals = data[metric]
+
 color_mapper = LinearColorMapper(palette=palette, low=vals.min(), high=vals.max(), 
-                                 nan_color = '#d9d9d9') # note NaN color arg is ignored... known bug.
+                                 nan_color = '#d9d9d9') 
 
-color_bar = ColorBar(color_mapper=color_mapper, label_standoff=8, #width=500, height=20,
-                         location=(0,0), orientation='horizontal')
+color_bar = ColorBar(color_mapper=color_mapper, label_standoff=6, 
+                         location=(0,0), orientation='horizontal', formatter=NumeralTickFormatter())
 
-# TOOLTIPS = [
-#     ('UN country', '@country'),
-#     ('Confirmed', '@confirmed'),
-#     ('Recovered', '@recovered'),
-#     ('Deaths', '@deaths')
-# ]
-
-p1 = figure(title='Global Records', 
+p1 = figure(title='Global Records By United Nations Country', 
            plot_height=600 , plot_width=850, 
            toolbar_location='right', 
-           tools='wheel_zoom, pan, reset',
-           #tooltips=TOOLTIPS,
+           tools='pan,wheel_zoom,box_zoom,reset',
            x_axis_label='Longitude', y_axis_label='Latitude')
 
 p1.xgrid.grid_line_color = None
 p1.ygrid.grid_line_color = None
 
-p1.patches('xs','ys', 
+country_polygons = p1.patches('xs','ys', 
           source=source,
           fill_alpha=1, line_width=0.5, line_color='black',  
           fill_color={'field': metric, 'transform': color_mapper})
 
-hover = HoverTool(tooltips=[('UN Country', '@country'), ('Confirmed', '@confirmed')])
+hover = HoverTool(tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')])
 
 date_slider = DateSlider(title='Date', value=end_date, start=start_date, end=end_date, step=1)
 date_slider.on_change('value', slider_callback)
@@ -259,7 +251,7 @@ date_slider.on_change('value', slider_callback)
 p1.add_layout(color_bar, 'below')
 p1.add_tools(hover)
 
-menu = Select(options=['Confirmed', 'Recovered', 'Deaths'], value='Confirmed', title='Metric')
+menu = Select(options=['Confirmed', 'Deaths', 'Recovered'], value='Deaths', title='Metric')
 menu.on_change('value', menu_callback)
 
 ### LAYOUT WITHOUT TABS
