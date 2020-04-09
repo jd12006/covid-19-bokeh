@@ -187,25 +187,25 @@ def menu_callback(attr, old, new):
         metric = 'confirmed'  
         #color_mapper.palette = brewer['Blues'][9][::-1]
         color_mapper.palette = colorcet.b_linear_blue_5_95_c73[::-1]
-        hover = HoverTool(tooltips=[('UN Country', '@country'), ('Confirmed', '@confirmed{0,0}')])
-        p1.add_tools(hover)
+        tooltips=[('UN Country', '@country'), ('Confirmed', '@confirmed{0,0}')]
     
     elif menu.value == 'Recovered': 
         metric = 'recovered'
         #color_mapper.palette = brewer['Greens'][9][::-1]
         color_mapper.palette = colorcet.b_linear_green_5_95_c69[::-1]
-        hover = HoverTool(tooltips=[('UN Country', '@country'), ('Recovered', '@recovered{0,0}')])
-        p1.add_tools(hover)
+        tooltips=[('UN Country', '@country'), ('Recovered', '@recovered{0,0}')]
         
     elif menu.value == 'Deaths':
         metric = 'deaths'
         #color_mapper.palette = brewer['Reds'][9][::-1]
         color_mapper.palette = colorcet.b_linear_kry_5_95_c72[::-1]
-        hover = HoverTool(tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')])
-        p1.add_tools(hover)
+        tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')]
     else:
         print('Unknown value')
         
+    # update tooltips
+    p1.hover.tooltips = tooltips
+    
     # update colours
     vals = data[metric]    
     color_mapper.low = vals.min()
