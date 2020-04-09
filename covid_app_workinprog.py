@@ -210,6 +210,7 @@ def menu_callback(attr, old, new):
     vals = data[metric]    
     color_mapper.low = vals.min()
     color_mapper.high = vals.max()
+    country_polygons.glyph.fill_color = {'field': metric, 'transform': color_mapper}
     color_bar.color_mapper = color_mapper
 
     
@@ -261,7 +262,7 @@ p1 = figure(title='Global Records By United Nations Country',
 p1.xgrid.grid_line_color = None
 p1.ygrid.grid_line_color = None
 
-p1.patches('xs','ys', 
+country_polygons = p1.patches('xs','ys', 
           source=source,
           fill_alpha=1, line_width=0.5, line_color='black',  
           fill_color={'field': metric, 'transform': color_mapper})
