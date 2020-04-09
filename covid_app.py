@@ -174,17 +174,17 @@ def menu_callback(attr, old, new):
     if menu.value == 'Confirmed': 
         metric = 'confirmed'  
         color_mapper.palette = colorcet.b_linear_blue_5_95_c73[::-1]
-        tooltips=[('UN Country', '@country'), ('Confirmed', '@confirmed{0,0}')]
+        tooltips=[('Country', '@country'), ('Confirmed', '@confirmed{0,0}')]
         
     elif menu.value == 'Deaths':
         metric = 'deaths'
         color_mapper.palette = colorcet.b_linear_kry_5_98_c75[::-1]
-        tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')]
+        tooltips=[('Country', '@country'), ('Deaths', '@deaths{0,0}')]
         
     elif menu.value == 'Recovered': 
         metric = 'recovered'
         color_mapper.palette = colorcet.b_linear_green_5_95_c69[::-1]
-        tooltips=[('UN Country', '@country'), ('Recovered', '@recovered{0,0}')]
+        tooltips=[('Country', '@country'), ('Recovered', '@recovered{0,0}')]
         
     else:
         print('Unknown value')
@@ -214,7 +214,7 @@ end_date = datetime.datetime.date(datetime.datetime.strptime(data['day'].max(), 
 
 selected_day = end_date
 source = source_by_date(data, selected_day)
-source = GeoJSONDataSource(geojson=json.dumps(json.loads(source.to_json()))) # GeoJSONDataSource only works with string dates. Have to use geojsondatasource for mapping.
+source = GeoJSONDataSource(geojson=json.dumps(json.loads(source.to_json()))) # GeoJSONDataSource only works with string dates. Have to use geojsondatasource for mapping.a
 
 # set the defaults
 metric = 'deaths'
@@ -243,7 +243,7 @@ country_polygons = p1.patches('xs','ys',
           fill_alpha=1, line_width=0.5, line_color='black',  
           fill_color={'field': metric, 'transform': color_mapper})
 
-hover = HoverTool(tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')])
+hover = HoverTool(tooltips=[('Country', '@country'), ('Deaths', '@deaths{0,0}')])
 
 date_slider = DateSlider(title='Date', value=end_date, start=start_date, end=end_date, step=1)
 date_slider.on_change('value', slider_callback)

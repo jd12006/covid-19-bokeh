@@ -19,9 +19,6 @@ from bokeh.models import DateSlider, Select, HoverTool, DatetimeTickFormatter, N
 from bokeh.layouts import widgetbox, row, column
 from bokeh.models.annotations import Title
 from bokeh.models.widgets import Panel, Tabs
-
-# palettes
-#from bokeh.palettes import brewer #, Inferno256
 import colorcet 
 
 logging.basicConfig(level=logging.INFO)
@@ -69,12 +66,6 @@ def source_by_date(data, selected_day):
 
 
 ## import data
-
-## import data
-# PATH = '/Users/jdorni/Documents/training/COVID-19'
-# confirmed = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
-# deaths = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
-# recovered = pd.read_csv(f'{PATH}/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
 
 confirmed = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
 deaths = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
@@ -164,9 +155,6 @@ merged.dropna(subset=['day'], inplace=True) #XXX CHECK THIS IS THE RIGHT THING T
 merged.sort_values(by=['country', 'country_original', 'day'], inplace=True)
 
 
-## Subset to 2 dates for testing
-#merged_subset = merged.loc[merged['day'].isin(['2020-03-01', '2020-03-02'])]
-
 ## PLOT
 
 def slider_callback(attr, old, new):
@@ -186,17 +174,17 @@ def menu_callback(attr, old, new):
     if menu.value == 'Confirmed': 
         metric = 'confirmed'  
         color_mapper.palette = colorcet.b_linear_blue_5_95_c73[::-1]
-        tooltips=[('UN Country', '@country'), ('Confirmed', '@confirmed{0,0}')]
+        tooltips=[('Country', '@country'), ('Confirmed', '@confirmed{0,0}')]
         
     elif menu.value == 'Deaths':
         metric = 'deaths'
         color_mapper.palette = colorcet.b_linear_kry_5_98_c75[::-1]
-        tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')]
+        tooltips=[('Country', '@country'), ('Deaths', '@deaths{0,0}')]
         
     elif menu.value == 'Recovered': 
         metric = 'recovered'
         color_mapper.palette = colorcet.b_linear_green_5_95_c69[::-1]
-        tooltips=[('UN Country', '@country'), ('Recovered', '@recovered{0,0}')]
+        tooltips=[('Country', '@country'), ('Recovered', '@recovered{0,0}')]
         
     else:
         print('Unknown value')
@@ -215,7 +203,7 @@ def menu_callback(attr, old, new):
     
 data = merged
 
-logging.info(data.head())
+# logging.info(data.head())
 # logging.info(data['day'].min())
 # logging.info(type(data['day'].min()))
 # logging.info(data['day'].max())
@@ -223,11 +211,10 @@ logging.info(data.head())
 
 start_date = datetime.datetime.date(datetime.datetime.strptime(data['day'].min(), "%Y-%m-%d")) 
 end_date = datetime.datetime.date(datetime.datetime.strptime(data['day'].max(), "%Y-%m-%d"))
-#print(start_date, end_date)
 
 selected_day = end_date
 source = source_by_date(data, selected_day)
-source = GeoJSONDataSource(geojson=json.dumps(json.loads(source.to_json()))) # GeoJSONDataSource only works with string dates. Have to use geojsondatasource for mapping.
+source = GeoJSONDataSource(geojson=json.dumps(json.loads(source.to_json()))) # GeoJSONDataSource only works with string dates. Have to use geojsondatasource for mapping.a
 
 # set the defaults
 metric = 'deaths'
@@ -256,7 +243,7 @@ country_polygons = p1.patches('xs','ys',
           fill_alpha=1, line_width=0.5, line_color='black',  
           fill_color={'field': metric, 'transform': color_mapper})
 
-hover = HoverTool(tooltips=[('UN Country', '@country'), ('Deaths', '@deaths{0,0}')])
+hover = HoverTool(tooltips=[('Country', '@country'), ('Deaths', '@deaths{0,0}')])
 
 date_slider = DateSlider(title='Date', value=end_date, start=start_date, end=end_date, step=1)
 date_slider.on_change('value', slider_callback)
