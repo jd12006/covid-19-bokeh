@@ -23,20 +23,130 @@ import colorcet
 
 logging.basicConfig(level=logging.INFO)
 
+
+def preprocess():
+    """
+    Prepare df for plotting
+    
+    - imports COVID-19 case and country boundary datasets
+    - validates country names
+    - joins datasets together
+    - sets datatime data types
+    - adds missing rows for countries with no cases reported on certain dates
+    """
+    
+    ## import data
+
+    confirmed = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+    deaths = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+    recovered = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
+
+    # read in shapefile using Geopandas
+    shapefile = 'data/country_boundaries/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp'
+    gdf = gpd.read_file(shapefile)[['ADMIN', 'ADM0_A3', 'geometry']]
+
+
+    ## prepare data
+
+    # rename columns
+    gdf.columns = ['country', 'country_code', 'geometry']
+
+    confirmed_melted = prepare_data(df=confirmed, metric='confirmed')
+    deaths_melted = prepare_data(df=deaths, metric='deaths')
+    recovered_melted = prepare_data(df=recovered, metric='recovered')
+
+    df = pd.concat([confirmed_melted, deaths_melted, recovered_melted], axis=1)
+    df.reset_index(inplace=True)
+
+
+    # sum provinces to get totals by whole countries  
+    df = df.groupby(['country', 'day']).agg(
+        confirmed=pd.NamedAgg(column='confirmed', aggfunc='sum'),
+        deaths=pd.NamedAgg(column='deaths', aggfunc='sum'),
+        recovered=pd.NamedAgg(column='recovered', aggfunc='sum'))
+
+    df = df.reset_index()
+
+    # convert date to a sortable string format
+    df['day'] = pd.to_datetime(df['day']).dt.strftime("%Y-%m-%d")
+
+
+    # keep record of original country name
+    df['country_original'] = df['country']
+
+    # remap country names (need to sum again after this as some countries are combined)
+
+    country_map = {
+        'Congo (Kinshasa)': 'Democratic Republic of the Congo',
+        'Congo (Brazzaville)': 'Democratic Republic of the Congo',
+        "Cote d'Ivoire": 'Ivory Coast',
+        'Eswatini': 'eSwatini',
+        'Gambia, The': 'Gambia', 
+        'The Gambia': 'Gambia', 
+        'Korea, South': 'South Korea', 
+        'North Macedonia': 'Macedonia', 
+        'Serbia': 'Republic of Serbia',
+        'Taiwan*': 'Taiwan',
+        'Tanzania': 'United Republic of Tanzania',
+        'Timor-Leste': 'East Timor',
+        'Bahamas, The': 'The Bahamas',
+        'US': 'United States of America',
+        'Holy See': 'Italy'    # church jurisdiction and not country (vatican)
+    }
+
+    df.replace({"country": country_map}, inplace=True)
+
+
+    # left join so only countries we have geometries for are in the mapping dataset
+    merged = gdf.merge(df, left_on = 'country', right_on = 'country', how='left')
+    merged = merged.drop(['country_code'], axis=1)
+
+    # re-convert day (including the NaN rows) to the correct string date format 
+    merged['day'] = pd.to_datetime(merged['day']).dt.strftime("%Y-%m-%d")
+
+    ## Add missing date rows for countries with no cases
+
+    # create tmp table of all combinations of country X date
+    country_date_cols = ['country', 'day']
+    lists_of_uniques = [merged[col].unique() for col in country_date_cols]
+    tmp = pd.DataFrame(list(itertools.product(*lists_of_uniques)), columns=country_date_cols)
+
+    # add geometry from country borders
+    tmp = tmp.merge(gdf[['country', 'geometry']], left_on = 'country', right_on = 'country', how='left')
+
+    # outer join to add missing rows - will join on common columns
+    merged = merged.merge(tmp, how='outer')
+
+    # del rows with day='NaT' and NaNs
+    merged = merged.loc[merged['day'] != 'NaT']
+    merged.dropna(subset=['day'], inplace=True) #XXX CHECK THIS IS THE RIGHT THING TO DO!!
+
+    # sort by date to plot time series
+    merged.sort_values(by=['country', 'country_original', 'day'], inplace=True)
+    
+    return merged
+
+
 def prepare_data(df, metric):
+    """Subset df by metric based on user input
+    
+    Args:
+        df {pd.DataFrame} one row per country/date with country geometry and a column for each metric
+        metric {str} one of ['Confirmed', 'Deaths', 'Recovered']
+        
+    Returns:
+        df {pd.DataFrame}
+    """
     
     # organise cols
-    
     df.rename({'Country/Region': 'country', 'Province/State': 'province'}, axis=1, inplace=True)
     df.columns = [x.lower() for x in df.columns]
     df.fillna('No data', inplace=True)
     
     # convert from wide to long 
     # to get one row per province/country/date
-
     df = pd.melt(df, id_vars=['country', 'province', 'lat', 'long'],
                  var_name='day', value_name=metric)
-
     df.set_index(['country', 'province', 'lat', 'long', 'day'], inplace=True)
     
     return df.sort_values(by=['country', 'province'])
@@ -64,95 +174,6 @@ def source_by_date(data, selected_day):
     new_data = data.loc[data['day'] == selected_day] 
     return new_data
 
-
-## import data
-
-confirmed = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
-deaths = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
-recovered = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
-
-# read in shapefile using Geopandas
-shapefile = 'data/country_boundaries/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp'
-gdf = gpd.read_file(shapefile)[['ADMIN', 'ADM0_A3', 'geometry']]
-
-
-## prepare data
-
-# rename columns
-gdf.columns = ['country', 'country_code', 'geometry']
-
-confirmed_melted = prepare_data(df=confirmed, metric='confirmed')
-deaths_melted = prepare_data(df=deaths, metric='deaths')
-recovered_melted = prepare_data(df=recovered, metric='recovered')
-
-df = pd.concat([confirmed_melted, deaths_melted, recovered_melted], axis=1)
-df.reset_index(inplace=True)
-
-
-# sum provinces to get totals by whole countries  
-df = df.groupby(['country', 'day']).agg(
-    confirmed=pd.NamedAgg(column='confirmed', aggfunc='sum'),
-    deaths=pd.NamedAgg(column='deaths', aggfunc='sum'),
-    recovered=pd.NamedAgg(column='recovered', aggfunc='sum'))
-
-df = df.reset_index()
-
-# convert date to a sortable string format
-df['day'] = pd.to_datetime(df['day']).dt.strftime("%Y-%m-%d")
-
-
-# keep record of original country name
-df['country_original'] = df['country']
-
-# remap country names (need to sum again after this as some countries are combined)
-
-country_map = {
-    'Congo (Kinshasa)': 'Democratic Republic of the Congo',
-    'Congo (Brazzaville)': 'Democratic Republic of the Congo',
-    "Cote d'Ivoire": 'Ivory Coast',
-    'Eswatini': 'eSwatini',
-    'Gambia, The': 'Gambia', 
-    'The Gambia': 'Gambia', 
-    'Korea, South': 'South Korea', 
-    'North Macedonia': 'Macedonia', 
-    'Serbia': 'Republic of Serbia',
-    'Taiwan*': 'Taiwan',
-    'Tanzania': 'United Republic of Tanzania',
-    'Timor-Leste': 'East Timor',
-    'Bahamas, The': 'The Bahamas',
-    'US': 'United States of America',
-    'Holy See': 'Italy'    # church jurisdiction and not country (vatican)
-}
-
-df.replace({"country": country_map}, inplace=True)
-
-
-# left join so only countries we have geometries for are in the mapping dataset
-merged = gdf.merge(df, left_on = 'country', right_on = 'country', how='left')
-merged = merged.drop(['country_code'], axis=1)
-
-# re-convert day (including the NaN rows) to the correct string date format 
-merged['day'] = pd.to_datetime(merged['day']).dt.strftime("%Y-%m-%d")
-
-## Add missing date rows for countries with no cases
-
-# create tmp table of all combinations of country X date
-country_date_cols = ['country', 'day']
-lists_of_uniques = [merged[col].unique() for col in country_date_cols]
-tmp = pd.DataFrame(list(itertools.product(*lists_of_uniques)), columns=country_date_cols)
-
-# add geometry from country borders
-tmp = tmp.merge(gdf[['country', 'geometry']], left_on = 'country', right_on = 'country', how='left')
-
-# outer join to add missing rows - will join on common columns
-merged = merged.merge(tmp, how='outer')
-
-# del rows with day='NaT' and NaNs
-merged = merged.loc[merged['day'] != 'NaT']
-merged.dropna(subset=['day'], inplace=True) #XXX CHECK THIS IS THE RIGHT THING TO DO!!
-
-# sort by date to plot time series
-merged.sort_values(by=['country', 'country_original', 'day'], inplace=True)
 
 
 ## PLOT
@@ -199,9 +220,8 @@ def menu_callback(attr, old, new):
     country_polygons.glyph.fill_color = {'field': metric, 'transform': color_mapper}
     color_bar.color_mapper = color_mapper
 
-    
-    
-data = merged
+   
+data = preprocess()
 
 # logging.info(data.head())
 # logging.info(data['day'].min())
