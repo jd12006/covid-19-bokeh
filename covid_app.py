@@ -67,12 +67,12 @@ def source_by_date(data, selected_day):
 
 ## import data
 
-confirmed = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
-deaths = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
-recovered = pd.read_csv('csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
+confirmed = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+deaths = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+recovered = pd.read_csv('data/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
 
 # read in shapefile using Geopandas
-shapefile = 'country_boundaries/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp'
+shapefile = 'data/country_boundaries/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp'
 gdf = gpd.read_file(shapefile)[['ADMIN', 'ADM0_A3', 'geometry']]
 
 
