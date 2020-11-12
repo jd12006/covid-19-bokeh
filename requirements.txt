@@ -13,7 +13,7 @@ numpy==1.18.2
 packaging==20.3
 pandas==1.0.3
 param==1.9.3
-Pillow==7.0.0
+Pillow>=7.1.0
 pyct==0.4.6
 pyparsing==2.4.6
 pyproj==2.6.0
