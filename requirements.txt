@@ -6,7 +6,7 @@ cligj==0.5.0
 colorcet==2.0.2
 Fiona==1.8.13.post1
 geopandas==0.7.0
-Jinja2==2.11.1
+Jinja2==2.11.3
 MarkupSafe==1.1.1
 munch==2.5.0
 numpy==1.18.2
