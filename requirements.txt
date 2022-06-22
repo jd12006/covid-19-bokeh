@@ -9,7 +9,7 @@ geopandas==0.7.0
 Jinja2==2.11.1
 MarkupSafe==1.1.1
 munch==2.5.0
-numpy==1.18.2
+numpy==1.22.0
 packaging==20.3
 pandas==1.0.3
 param==1.9.3
